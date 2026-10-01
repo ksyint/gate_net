@@ -1,0 +1,31 @@
+{
+  "id": 0,
+  "name": "FALSE",
+  "expression": "0",
+  "inputs": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ]
+  ],
+  "outputs": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "depends_on_a": false,
+  "depends_on_b": false
+}

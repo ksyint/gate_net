@@ -8,8 +8,8 @@ import json
 import yaml
 from pathlib import Path
 from torch.utils.data import DataLoader
-from logic import wiring_statistics, OSLGN, evaluate_circuit, symbolic_equations, minimize_features
-from experiment import (
+from networks.logic.operators.gates import wiring_statistics, OSLGN, evaluate_circuit, symbolic_equations, minimize_features
+from experiments.runtime.wiring import (
     load_dataset,
     experiment_config,
     cuda_device,
@@ -431,6 +431,7 @@ def run_study_cli():
 
 def main():
     import sys
+    import importlib
 
     commands = {
         'train': train_cli,
@@ -443,11 +444,22 @@ def main():
         'study': run_study_cli,
         'catalog': catalog_cli,
     }
+    extensions = {
+        'circuit': 'networks.logic.analysis.circuits',
+        'verify': 'networks.logic.verification.equivalence',
+        'dataset': 'data.preparation.arrays.partitions',
+        'predictions': 'evaluation.classification.reports.predictions',
+        'runs': 'experiments.studies.seeds.runs',
+        'artifacts': 'experiments.artifacts.checkpoints.inspection',
+    }
     parser = argparse.ArgumentParser(description='Train, evaluate, and inspect learned Boolean wiring.')
-    parser.add_argument('operation', choices=commands)
+    parser.add_argument('operation', choices=tuple(commands)+tuple(extensions))
     operation = parser.parse_args(sys.argv[1:2]).operation
     del sys.argv[1]
-    commands[operation]()
+    if operation in extensions:
+        importlib.import_module(extensions[operation]).main()
+    else:
+        commands[operation]()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,31 @@
+{
+  "id": 7,
+  "name": "OR",
+  "expression": "a or b",
+  "inputs": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ]
+  ],
+  "outputs": [
+    0,
+    1,
+    1,
+    1
+  ],
+  "depends_on_a": true,
+  "depends_on_b": true
+}

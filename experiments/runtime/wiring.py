@@ -8,7 +8,7 @@ import yaml
 import math
 from pathlib import Path
 from torch.utils.data import TensorDataset
-from logic import OSLGN
+from networks.logic.operators.gates import OSLGN
 from copy import deepcopy
 from itertools import product
 
@@ -149,7 +149,7 @@ def restore_model(checkpoint, device='cuda'):
     return model.eval(), saved['config']
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2]
 SWEEPS = ROOT / 'configs' / 'mnist' / 'sweeps'
 DEPTHS = (2, 3, 4, 5, 6, 8)
 WIDTHS = (128, 256, 512)

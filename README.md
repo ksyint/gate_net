@@ -95,7 +95,7 @@ Evaluation measures the held-out test set and compares network features with an 
 
 ```python
 import json
-from logic import evaluate_circuit
+from networks.logic.operators.gates import evaluate_circuit
 
 with open("results/mnist/circuit/circuit.json") as handle:
     circuit = json.load(handle)
@@ -110,4 +110,30 @@ pip install pyeda
 python gate.py minimize --circuit results/mnist/circuit/circuit.json --max-support 16
 ```
 
-The compression command records each original expression and its Espresso result for features within the selected support budget, and preserves the saved linear head. Features above that budget retain their exact symbolic expression. `logic.py` contains differentiable gates and exact circuit operations. `experiment.py` owns dataset splits, saved configurations, and the wiring catalog. The `gate.py` subcommands use those same definitions for training, studies, prediction, and export.
+The compression command records each original expression and its Espresso result for features within the selected support budget, and preserves the saved linear head. Features above that budget retain their exact symbolic expression. `networks/logic/operators/gates.py` contains differentiable gates and exact circuit operations. `experiments/runtime/wiring.py` owns dataset splits, saved configurations, and the wiring catalog. The `gate.py` subcommands use those same definitions for training, studies, prediction, and export.
+
+## Working with prepared data and saved runs
+
+The source tree separates differentiable operators from circuit analysis, CUDA verification, array preparation, classification reports, study queues, and artifact inspection:
+
+```text
+networks/logic/
+  operators/gates.py
+  analysis/circuits.py
+  verification/equivalence.py
+data/preparation/arrays/partitions.py
+evaluation/classification/reports/predictions.py
+experiments/
+  runtime/wiring.py
+  studies/seeds/runs.py
+  artifacts/checkpoints/inspection.py
+assets/logic/truth_tables/
+```
+
+- [Prepare and inspect NPZ or local IDX data](docs/data/arrays.md)
+- [Analyze circuits, extract feature cones, and verify on CUDA](docs/circuits/analysis.md)
+- [Collect predictions and summarize classification errors](docs/evaluation/predictions.md)
+- [Plan resumable studies and aggregate measured seeds](docs/experiments/queues.md)
+- [Inspect checkpoint tensors and verify saved artifacts](docs/artifacts/checkpoints.md)
+
+The existing training commands and checkpoint fields remain the same. Structural reports and file preparation read the supplied artifacts. Model inference, circuit verification, truth-table enumeration, checkpoint tensor analysis, and classification tensor metrics use CUDA.

@@ -5,9 +5,8 @@ import types
 import torch
 import itertools
 import numpy as np
-from experiment import load_dataset, load_config
-from torch import nn
-from logic import (
+from experiments.runtime.wiring import load_dataset, load_config
+from networks.logic.operators.gates import (
     OSLGN,
     LogicLayer,
     OperandSelector,

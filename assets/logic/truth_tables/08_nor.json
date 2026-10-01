@@ -1,0 +1,31 @@
+{
+  "id": 8,
+  "name": "NOR",
+  "expression": "not (a or b)",
+  "inputs": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      1
+    ]
+  ],
+  "outputs": [
+    1,
+    0,
+    0,
+    0
+  ],
+  "depends_on_a": true,
+  "depends_on_b": true
+}
