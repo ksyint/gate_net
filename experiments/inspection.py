@@ -55,11 +55,7 @@ def read_saved(path, device='cuda'):
         raise ValueError('Saved epoch and training history disagree')
     if not {'state', 'param_groups'} <= saved['optimizer'].keys():
         raise ValueError('Checkpoint optimizer is missing state or parameter groups')
-    parameters = [key for group in saved['optimizer']['param_groups'] for key in group['params']]
-    if len(parameters) != len(set(parameters)) or len(parameters) != len(shapes):
-        raise ValueError('Optimizer parameter membership differs from the model')
-    ordered_shapes = [tuple(tensor.shape) for tensor in state.values()]
-    parameter_shapes = dict(zip(parameters, ordered_shapes))
+    parameter_shapes = optimizer_shapes(saved, shapes)
     for parameter, statistics in saved['optimizer']['state'].items():
         if parameter not in parameter_shapes:
             raise ValueError('Optimizer state refers to an unknown parameter')
@@ -121,7 +117,7 @@ def inspect_checkpoint(path, device='cuda', extract=None):
                 model_parameters=sum(row['elements'] for row in rows), tensors=rows, selection_margins=margins,
                 optimizer_groups=len(saved['optimizer']['param_groups']),
                 optimizer_state_entries=len(saved['optimizer']['state']),
-                rng_fields=[key for key in ('torch_rng', 'cuda_rng') if key in saved],
+                rng_fields=sorted(saved.get('rng', {})) or [key for key in ('torch_rng', 'cuda_rng') if key in saved],
                 wiring=CircuitAnalysis(circuit).summary())
 
 
@@ -225,3 +221,38 @@ def main():
     print(json.dumps(result, indent=2, allow_nan=False))
     if result.get('valid') is False:
         raise SystemExit('Artifact inventory differs from the saved files')
+
+
+def optimizer_shapes(saved, shapes):
+    groups = saved['optimizer']['param_groups']
+    parameters = [key for group in groups for key in group['params']]
+    if len(parameters) != len(set(parameters)):
+        raise ValueError('Optimizer parameter membership contains duplicates')
+    names = saved.get('optimizer_parameter_names')
+    if names is None:
+        if saved.get('format') == 'gate-training-v2':
+            raise ValueError('Grouped training snapshots require optimizer parameter names')
+        if len(parameters) != len(shapes):
+            raise ValueError('Legacy optimizer parameter membership differs from the model')
+        return dict(zip(parameters, (tuple(tensor.shape) for tensor in saved['model'].values())))
+    if len(names) != len(groups):
+        raise ValueError('Optimizer parameter-name groups differ from saved optimizer groups')
+    mapped = {}
+    used = set()
+    for group, group_names in zip(groups, names):
+        if len(group['params']) != len(group_names):
+            raise ValueError('Every optimizer ID must have one model parameter name')
+        for identifier, name in zip(group['params'], group_names):
+            if name not in shapes or name in used:
+                raise ValueError('Optimizer parameter names must be unique model tensors')
+            used.add(name)
+            mapped[identifier] = shapes[name]
+    frozen = set(saved['config']['train'].get('freeze', []))
+    expected = set()
+    for name in shapes:
+        kind = 'head' if name.startswith('head.') else 'operators' if name.endswith('.operator') else 'operands'
+        if kind not in frozen:
+            expected.add(name)
+    if used != expected:
+        raise ValueError('Optimized names do not match the configured frozen parameter groups')
+    return mapped

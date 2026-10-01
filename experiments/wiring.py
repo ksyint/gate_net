@@ -116,7 +116,7 @@ def restore_model(checkpoint, device='cuda'):
 
 ROOT = Path(__file__).resolve().parents[1]
 SWEEPS = ROOT / 'configs' / 'sweeps'
-PYTHON_SWEEP_PROFILES = 109
+PYTHON_SWEEP_PROFILES = 106
 DEPTHS = (2, 3, 4, 5, 6, 8)
 WIDTHS = (128, 256, 512)
 INITIALIZATIONS = ((True, 0.5), (True, 1.0), (True, 2.0), (True, 4.0), (False, 2.0))

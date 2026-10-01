@@ -60,3 +60,33 @@ python gate.py verify truth-table --circuit results/mnist/circuit/circuit.json \
 ```
 
 The NPZ contains original input coordinates, their binary assignments, and the selected feature output. Assignment column zero is the least significant bit in the row index. Other input coordinates are zero because they lie outside the selected feature's dependency cone. Enumeration runs in CUDA batches and writes the resulting arrays with metadata beside the archive.
+
+## Observed wiring and input behavior
+
+The analysis commands below restore a checkpoint and use its binary input threshold. MNIST is downloaded automatically when required. Supply `--offline` to use prepared local data. `--data prepared/digits.npz` selects an NPZ partition and `--split val` selects its held-out rows. Every numerical model analysis uses CUDA.
+
+```bash
+python gate.py binary --checkpoint results/mnist/depth4/last.pth --pairs --output reports/input-bits.json
+python gate.py activations --checkpoint results/mnist/depth4/last.pth --head-contributions --feature-groups --output reports/activations.json
+python gate.py stability --checkpoints results/mnist/depth4/best.pth results/mnist/depth4/last.pth --output reports/wiring-movement.json
+```
+
+`binary` records class-conditional bit rates, entropy and bit-label mutual information. `--pairs` adds input correlations. For MNIST or continuous NPZ source arrays, `--thresholds 0.25 0.5 0.75` compares binary input density under different preprocessing thresholds.
+
+`activations` records the binary units reached by the supplied examples. `--pair-width` controls the prefix used for pairwise activation counts. `--feature-groups` groups final features with identical or complementary values across those examples and combines their head coefficients. `--head-contributions` measures signed contributions and correct-class margins separately for each target class.
+
+`stability` compares selected operands, gate IDs, selection-score margins and class-head movement. Gate changes also include the number of truth-table rows changed per unit. Its default reference is the preceding checkpoint. `--reference first` compares every checkpoint against the first supplied one.
+
+## Perturbations and gradients
+
+Use the same checkpoint, input partition and batch limit for paired circuit measurements.
+
+| Command | Measurement |
+| --- | --- |
+| `robustness` | Binary corruption, image shifts and optional single-bit neighborhoods |
+| `intervene` | Effects of forcing selected internal units to zero or one |
+| `influence` | Prediction and accuracy changes from individual input-bit flips |
+| `gradients` | Operand gradient propagation and temporary parameter steps |
+| `benchmark` | CUDA event timings for model, layer and optional packed-circuit execution |
+
+Each command exposes its own analysis settings through `--help`. `--max-batches` bounds the evaluated partition. Temporary interventions and gradient steps restore the original model tensors before returning.

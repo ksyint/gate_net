@@ -118,6 +118,8 @@ class RunQueue:
         if job['offline']:
             command.append('--offline')
         checkpoint = Path(job['output'])/'last.pth'
+        if not checkpoint.is_file():
+            checkpoint = Path(job['output'])/'best.pth'
         if resume and checkpoint.is_file():
             command.extend(('--resume', str(checkpoint)))
         return command
@@ -129,6 +131,10 @@ class RunQueue:
         report = json.loads(path.read_text())
         config = load_config(job['configuration'])
         if report.get('config') != config or not report.get('history'):
+            return False
+        if 'final_train' not in report or report.get('complete') is False:
+            return False
+        if config['data']['dataset'] == 'mnist' and not job['data'] and 'final_test' not in report:
             return False
         return report['history'][-1]['epoch'] == job['epochs']
 
@@ -146,8 +152,8 @@ class RunQueue:
                 output = Path(job['output'])
                 if output.exists() and any(output.iterdir()) and not resume:
                     raise FileExistsError(f'Use --resume for an existing run directory: {output}')
-                if output.exists() and any(output.iterdir()) and not (output/'last.pth').is_file():
-                    raise ValueError(f'Existing run has no last.pth to resume: {output}')
+                if output.exists() and any(output.iterdir()) and not any((output/name).is_file() for name in ('last.pth', 'best.pth')):
+                    raise ValueError(f'Existing run has no training snapshot to resume: {output}')
                 command = self.command(job, resume)
                 output.mkdir(parents=True, exist_ok=True)
                 write_json(output/'planned-run.json', job)
