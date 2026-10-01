@@ -27,7 +27,7 @@ CUDA_VISIBLE_DEVICES=0 python gate.py train --dataset mnist --depth 4 --seed 42 
 
 The default experiment uses all 60,000 training images for 50 epochs, then measures the final checkpoint on the 10,000-image test partition. It uses 784 binary inputs, hidden width 512, ten final logic features, a 10→10 linear head, locality sigma 2, Adam at 0.001 with betas (0.9, 0.999), and batch size 64. Pixels greater than 0.5 become one. No augmentation is applied.
 
-`configs/mnist/depth2.yaml`, `depth4.yaml`, and `depth8.yaml` select the depth studies. `--epochs`, `--seed`, `--config`, and `--output` select the run. `--offline` uses the existing MNIST files without network access:
+`configs/tasks/mnist_depth2.yaml`, `mnist_depth4.yaml`, and `mnist_depth8.yaml` select the depth studies. `--epochs`, `--seed`, `--config`, and `--output` select the run. `--offline` uses the existing MNIST files without network access:
 
 ```bash
 python gate.py train --dataset mnist --depth 8 --seed 123 --data-root /data/mnist --offline
@@ -74,7 +74,7 @@ python gate.py study --study locality --device cuda
 
 The depth study uses 2/4/8 layers. The operand study compares trainable and detached operand paths at depth 1. The locality study compares Gaussian and random initialization at depth 4 with width 512. Each writes per-run checkpoints and a `summary.json` with measured mean and sample standard deviation over the selected seeds.
 
-The broader 270-profile catalog in `configs/mnist/sweeps` combines depths 2/3/4/5/6/8, widths 128/256/512, Gaussian sigma 0.5/1/2/4 or random initialization, and three seeds. Every axis changes the actual logic model:
+The broader 270-profile catalog in `configs/mnist/sweeps` groups files by depth and width. Filenames record initialization and seed as `<initialization>__seed_<seed>.yaml`. It combines depths 2/3/4/5/6/8, widths 128/256/512, Gaussian sigma 0.5/1/2/4 or random initialization, and three seeds. Every axis changes the actual logic model:
 
 ```bash
 python gate.py sweep --depths 2 4 8 --widths 512 \
@@ -95,7 +95,7 @@ Evaluation measures the held-out test set and compares network features with an 
 
 ```python
 import json
-from networks.logic.operators.gates import evaluate_circuit
+from networks.logic.circuits.gates import evaluate_circuit
 
 with open("results/mnist/circuit/circuit.json") as handle:
     circuit = json.load(handle)
@@ -110,30 +110,34 @@ pip install pyeda
 python gate.py minimize --circuit results/mnist/circuit/circuit.json --max-support 16
 ```
 
-The compression command records each original expression and its Espresso result for features within the selected support budget, and preserves the saved linear head. Features above that budget retain their exact symbolic expression. `networks/logic/operators/gates.py` contains differentiable gates and exact circuit operations. `experiments/runtime/wiring.py` owns dataset splits, saved configurations, and the wiring catalog. The `gate.py` subcommands use those same definitions for training, studies, prediction, and export.
+The compression command records each original expression and its Espresso result for features within the selected support budget, and preserves the saved linear head. Features above that budget retain their exact symbolic expression. `networks/logic/circuits/gates.py` contains differentiable gates and exact circuit operations. `data/preparation/arrays/loaders.py` owns dataset splits. `experiments/runtime/wiring.py` owns saved configurations and the wiring catalog. The `gate.py` subcommands use those same definitions for training, studies, prediction, and export.
 
 ## Working with prepared data and saved runs
 
 The source tree separates differentiable operators from circuit analysis, CUDA verification, array preparation, classification reports, study queues, and artifact inspection:
 
 ```text
-networks/logic/
-  operators/gates.py
-  analysis/circuits.py
-  verification/equivalence.py
-data/preparation/arrays/partitions.py
-evaluation/classification/reports/predictions.py
-experiments/
-  runtime/wiring.py
-  studies/seeds/runs.py
-  artifacts/checkpoints/inspection.py
+networks/logic/circuits/
+  gates.py
+  analysis.py
+  test_gate.py
+data/preparation/arrays/
+  loaders.py
+  partitions.py
+evaluation/classification/reports/
+  predictions.py
+  equivalence.py
+experiments/runtime/
+  wiring.py
+  inspection.py
+  runs.py
 assets/logic/truth_tables/
 ```
 
-- [Prepare and inspect NPZ or local IDX data](docs/data/arrays.md)
-- [Analyze circuits, extract feature cones, and verify on CUDA](docs/circuits/analysis.md)
-- [Collect predictions and summarize classification errors](docs/evaluation/predictions.md)
-- [Plan resumable studies and aggregate measured seeds](docs/experiments/queues.md)
-- [Inspect checkpoint tensors and verify saved artifacts](docs/artifacts/checkpoints.md)
+- [Prepare and inspect NPZ or local IDX data](docs/workflows/arrays.md)
+- [Analyze circuits, extract feature cones, and verify on CUDA](docs/workflows/analysis.md)
+- [Collect predictions and summarize classification errors](docs/workflows/predictions.md)
+- [Plan resumable studies and aggregate measured seeds](docs/workflows/queues.md)
+- [Inspect checkpoint tensors and verify saved artifacts](docs/workflows/checkpoints.md)
 
 The existing training commands and checkpoint fields remain the same. Structural reports and file preparation read the supplied artifacts. Model inference, circuit verification, truth-table enumeration, checkpoint tensor analysis, and classification tensor metrics use CUDA.

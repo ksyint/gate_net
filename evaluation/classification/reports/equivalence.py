@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from networks.logic.analysis.circuits import CircuitAnalysis, read_circuit, validate_circuit
+from networks.logic.circuits.analysis import CircuitAnalysis, read_circuit, validate_circuit
 from experiments.runtime.wiring import cuda_device, restore_model, write_json
 
 

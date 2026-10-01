@@ -8,7 +8,7 @@ import json
 import yaml
 from pathlib import Path
 from torch.utils.data import DataLoader
-from networks.logic.operators.gates import wiring_statistics, OSLGN, evaluate_circuit, symbolic_equations, minimize_features
+from networks.logic.circuits.gates import wiring_statistics, OSLGN, evaluate_circuit, symbolic_equations, minimize_features
 from experiments.runtime.wiring import (
     load_dataset,
     experiment_config,
@@ -359,7 +359,7 @@ def run_experiments_cli():
 
 
 def run_study_main(args):
-    base = load_config('configs/mnist/depth4.yaml')
+    base = load_config('configs/tasks/mnist_depth4.yaml')
     if args.study == 'depth':
         settings = [(f'depth{depth}', {'depth': depth}) for depth in (2, 4, 8)]
     elif args.study == 'operands':
@@ -445,12 +445,12 @@ def main():
         'catalog': catalog_cli,
     }
     extensions = {
-        'circuit': 'networks.logic.analysis.circuits',
-        'verify': 'networks.logic.verification.equivalence',
+        'circuit': 'networks.logic.circuits.analysis',
+        'verify': 'evaluation.classification.reports.equivalence',
         'dataset': 'data.preparation.arrays.partitions',
         'predictions': 'evaluation.classification.reports.predictions',
-        'runs': 'experiments.studies.seeds.runs',
-        'artifacts': 'experiments.artifacts.checkpoints.inspection',
+        'runs': 'experiments.runtime.runs',
+        'artifacts': 'experiments.runtime.inspection',
     }
     parser = argparse.ArgumentParser(description='Train, evaluate, and inspect learned Boolean wiring.')
     parser.add_argument('operation', choices=tuple(commands)+tuple(extensions))

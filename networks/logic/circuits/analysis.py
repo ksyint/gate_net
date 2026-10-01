@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 
-from networks.logic.operators.gates import GATE_NAMES
+from networks.logic.circuits.gates import GATE_NAMES
 from experiments.runtime.wiring import ROOT, write_json
 
 

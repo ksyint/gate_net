@@ -6,7 +6,7 @@ import torch
 import itertools
 import numpy as np
 from experiments.runtime.wiring import load_dataset, load_config
-from networks.logic.operators.gates import (
+from networks.logic.circuits.gates import (
     OSLGN,
     LogicLayer,
     OperandSelector,
@@ -45,7 +45,7 @@ def test_mnist_validation_is_disjoint_from_training(monkeypatch):
 
 
 def test_boolean_task_uses_disjoint_seeded_splits():
-    cfg = load_config('configs/boolean/depth2.yaml')
+    cfg = load_config('configs/tasks/boolean_depth2.yaml')
     train = load_dataset(cfg, 'train', dataset='boolean')
     val = load_dataset(cfg, 'val', dataset='boolean')
     assert len(train) == 512 and len(val) == 128

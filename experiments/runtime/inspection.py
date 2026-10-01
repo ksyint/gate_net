@@ -8,8 +8,8 @@ import torch
 
 from data.preparation.arrays.partitions import digest_file
 from experiments.runtime.wiring import cuda_device, write_json
-from networks.logic.analysis.circuits import CircuitAnalysis, validate_circuit
-from networks.logic.operators.gates import GATE_NAMES
+from networks.logic.circuits.analysis import CircuitAnalysis, validate_circuit
+from networks.logic.circuits.gates import GATE_NAMES
 
 
 INVENTORY = 'gate-artifacts.json'
