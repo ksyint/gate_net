@@ -1,14 +1,14 @@
-# Learning to Wire: End-to-End Operand Selection for Symbolic Logic Networks
+# gate_net
 
-OSLGN learns Boolean wiring and gate choices directly from binarized MNIST. Each logic unit selects two operands and one of sixteen gates with straight-through gradients. Gaussian initialization favors neighboring inputs, and a learned linear classifier reads the final ten Boolean features.
+gate_net learns Boolean wiring and gate choices directly from binarized MNIST. Each logic unit selects two operands and one of sixteen gates with straight-through gradients. Gaussian initialization favors neighboring inputs, and a learned linear classifier reads the final ten Boolean features.
 
 ## Environmental Set-up
 
 Use Python 3.10+ with a matched CUDA build of PyTorch and torchvision:
 
 ```bash
-conda create -n oslgn python=3.10
-conda activate oslgn
+conda create -n gate_net python=3.10
+conda activate gate_net
 pip install -r requirements.txt
 ```
 
