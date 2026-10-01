@@ -36,7 +36,7 @@ def main(args):
     for path, config, _ in profiles:
         train(argparse.Namespace(dataset='mnist', config=str(path), depth=None, seed=None,
                                  epochs=args.epochs, output=None, data=args.data,
-                                 download=args.download, device=args.device, smoke=False))
+                                 download=True, offline=args.offline, data_root=args.data_root, device=args.device, smoke=False))
 
 
 if __name__ == '__main__':
@@ -47,7 +47,9 @@ if __name__ == '__main__':
                         choices=['local_sigma_0p5', 'local_sigma_1', 'local_sigma_2', 'local_sigma_4', 'random'])
     parser.add_argument('--seeds', nargs='+', type=int)
     parser.add_argument('--data', help='Optional NPZ with flattened MNIST-size examples')
-    parser.add_argument('--download', action='store_true')
+    parser.add_argument('--download', action='store_true', help='MNIST downloads automatically when online')
+    parser.add_argument('--offline', action='store_true')
+    parser.add_argument('--data-root', default='datasets')
     parser.add_argument('--epochs', type=int)
     parser.add_argument('--device', default='cuda')
     parser.add_argument('--limit', type=int)

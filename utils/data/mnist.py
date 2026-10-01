@@ -9,6 +9,10 @@ def read_split(config, split, download=False):
         generator = torch.Generator().manual_seed(config['train']['seed'])
         order = torch.randperm(len(labels), generator=generator)
         fraction = config['data'].get('validation_fraction', 0.1)
+        if fraction == 0:
+            if split == 'train':
+                return images, labels
+            raise ValueError('No validation split configured; evaluate the official test split after training')
         if not 0 < fraction < 1:
             raise ValueError('validation_fraction must lie strictly between zero and one')
         count = max(1, round(len(labels) * fraction))

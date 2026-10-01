@@ -13,9 +13,11 @@ from utils.util import evaluate, write_json
 def main(args):
     torch.set_num_threads(1)
     model, config = restore_model(args.checkpoint, args.device)
+    if args.data_root:
+        config['data']['root'] = args.data_root
     dataset = args.dataset or config['data'].get('dataset', 'boolean' if config['model']['num_classes'] == 2 else 'mnist')
     split = 'test' if dataset == 'mnist' and not args.data else 'val'
-    loader = DataLoader(load_dataset(config, split, args.data, dataset, args.download), batch_size=128)
+    loader = DataLoader(load_dataset(config, split, args.data, dataset, not args.offline), batch_size=128)
     metrics = evaluate(model, loader, args.device)
     circuit = model.export_circuit()
     maximum_error = 0.0
@@ -36,7 +38,9 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', required=True)
     parser.add_argument('--dataset', choices=['mnist', 'boolean'])
     parser.add_argument('--data')
-    parser.add_argument('--download', action='store_true')
+    parser.add_argument('--download', action='store_true', help='MNIST downloads automatically when online')
+    parser.add_argument('--offline', action='store_true')
+    parser.add_argument('--data-root')
     parser.add_argument('--device', default='cuda')
     parser.add_argument('--output', default='results/eval/metrics.json')
     main(parser.parse_args())

@@ -20,6 +20,8 @@ def experiment_config(args):
             config['train'][key] = value
     if args.output:
         config['train']['save_dir'] = args.output
+    if getattr(args, 'data_root', None):
+        config['data']['root'] = args.data_root
     config['data']['dataset'] = dataset
     return config
 

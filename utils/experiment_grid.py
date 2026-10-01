@@ -40,7 +40,7 @@ def validate_config(config):
         raise ValueError('Locality width must be positive and finite')
     if not isinstance(model['local_init'], bool) or not isinstance(model['detach_operands'], bool):
         raise ValueError('Wiring switches must be Boolean values')
-    if not 0 < data['validation_fraction'] < 1 or not 0 <= data['threshold'] <= 1:
+    if not 0 <= data['validation_fraction'] < 1 or not 0 <= data['threshold'] <= 1:
         raise ValueError('Invalid validation fraction or pixel threshold')
     if train['epochs'] < 1 or train['batch_size'] < 1 or train['learning_rate'] <= 0:
         raise ValueError('Invalid optimizer schedule')

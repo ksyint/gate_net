@@ -18,5 +18,5 @@ train:
 data:
   root: datasets
   threshold: 0.5
-  validation_fraction: 0.1
+  validation_fraction: 0.0
   dataset: mnist
