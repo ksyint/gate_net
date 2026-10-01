@@ -119,11 +119,12 @@ The source tree separates differentiable operators from circuit analysis, CUDA v
 ```text
 networks/
   gates.py
-  analysis.py
   test_gate.py
   evaluation/
     predictions.py
-    equivalence.py
+    circuits/
+      analysis.py
+      equivalence.py
 data/
   loaders.py
   partitions.py
@@ -146,7 +147,9 @@ configs/
     <depth>/
       <width>__<initialization>__seed_<seed>.{yaml,py}
       <width>/
-        <initialization>__seed_<seed>.{yaml,py}
+        random__seed_<seed>.{yaml,py}
+        gaussian/
+          local_sigma_<sigma>__seed_<seed>.{yaml,py}
 ```
 
 - [Prepare and inspect NPZ or local IDX data](docs/arrays.md)

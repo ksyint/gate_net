@@ -8,7 +8,7 @@ import torch
 
 from data.partitions import digest_file
 from experiments.wiring import cuda_device, write_json
-from networks.analysis import CircuitAnalysis, validate_circuit
+from networks.evaluation.circuits.analysis import CircuitAnalysis, validate_circuit
 from networks.gates import GATE_NAMES
 
 

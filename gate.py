@@ -445,8 +445,8 @@ def main():
         'catalog': catalog_cli,
     }
     extensions = {
-        'circuit': 'networks.analysis',
-        'verify': 'networks.evaluation.equivalence',
+        'circuit': 'networks.evaluation.circuits.analysis',
+        'verify': 'networks.evaluation.circuits.equivalence',
         'dataset': 'data.partitions',
         'predictions': 'networks.evaluation.predictions',
         'runs': 'experiments.runs',
