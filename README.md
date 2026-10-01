@@ -1,14 +1,16 @@
 # Learning to Wire: End-to-End Operand Selection for Symbolic Logic Networks
 
-Independent PyTorch implementation of Operand Selective Logic Gated Networks (OSLGN), based on the supplied manuscript by Soon Ho Choi and Soo Yong Kim.
+PyTorch implementation of OSLGN with learned operand selection and exact circuit export.
 
 ## Summary
 
-Each logic unit learns two operand selectors and one of sixteen Boolean gates. Hard argmax selection uses a straight-through estimator; a Gaussian proximity prior initializes local wiring. Arithmetic gate surrogates and straight-through rounding keep every logic-layer output binary. A linear classification head maps the final logic features to class logits.
+Each unit selects two operands and one of sixteen Boolean gates. Argmax selectors and rounded gate outputs use straight-through gradients. Gaussian initialization starts the wiring near neighboring inputs. A final linear classifier reads the binary logic features.
 
-The extracted JSON circuit runs independently with NumPy. It contains the exact discrete wiring, gates, and final linear head. Symbolic equations name each intermediate node once, preserving the computation graph without expanding exponentially large expressions.
+The experiment scripts select a dataset and depth. Logic layers are in `utils/logic`, datasets in `utils/data`, and exact circuit execution/export in `utils/symbolic`.
 
 ## Environmental Set-up
+
+Use PyTorch with CUDA. Experiment scripts and circuit-export verification use CUDA, selected with `--device cuda` or `--device cuda:N`. NumPy handles the exported circuit representation.
 
 ```bash
 conda create -n oslgn python=3.10
@@ -16,53 +18,53 @@ conda activate oslgn
 pip install -r requirements.txt
 ```
 
-## Quick Start
+## Training
 
-```bash
-python train.py --smoke
-python eval.py --checkpoint results/smoke/best.pth
-python -m pytest -q
-```
-
-The synthetic Boolean task checks real optimization without downloading data. Evaluation writes `results/eval/circuit.json`, `equations.txt`, and actual metrics. It verifies every held-out sample against the independent circuit evaluator.
-
-## MNIST
-
-Install a torchvision version compatible with your PyTorch installation, then run:
+Install torchvision compatible with your PyTorch build, then select depth 2, 4, or 8:
 
 ```bash
 pip install torchvision
-python train.py --config configs/oslgn.yaml --mnist --download
-python eval.py --checkpoint results/oslgn/best.pth --mnist
+CUDA_VISIBLE_DEVICES=0 python train.py --dataset mnist --depth 4 --seed 42 --download
 ```
 
-The default configuration follows the depth-4 setup: 784 binary inputs, width 512, 10 final logic features, a linear classification head, sigma 2.0, Adam at 0.001, batch size 64, and 50 epochs. Images are thresholded at 0.5. A seeded 10% split of the original training set selects checkpoints; evaluation uses the separate MNIST test set. Set depth to 2 or 8 for the depth study; `local_init` and `detach_operands` expose the two ablations.
+Profiles live at `configs/<dataset>/depth<N>.yaml`. `--config` selects a custom file, `--epochs` sets the training duration, and `--output` changes the checkpoint directory. The direct Adam loop trains hard logic gates and records measured metrics.
 
-For an existing NPZ, use keys `x_train`, `y_train`, `x_val`, `y_val` and configure the dimensions and class count. Inputs are normalized to [0,1] by the data producer; this loader thresholds them. Labels are integer class IDs.
+MNIST profiles use 784 inputs, width 512, 10 final logic features, sigma 2.0, Adam at 0.001, batch size 64, and 50 epochs. Pixel values are thresholded at 0.5. A seeded 10% split of the training data selects checkpoints; evaluation uses the separate test set. `local_init` and `detach_operands` enable the wiring ablations.
+
+For external arrays, pass `--data images.npz` and a matching configuration. The archive supplies `x_train`, `y_train`, `x_val`, `y_val`. Images are flattened and thresholded; normalize them to [0,1] beforehand. Labels are integer class IDs.
+
+## Depth, width, and wiring experiments
+
+The 270 configurations in `configs/mnist/sweeps` combine six depths (2/3/4/5/6/8), three hidden widths (128/256/512), five operand initialization choices, and three seeds (42/123/456). Initializations use Gaussian locality widths 0.5/1/2/4 or random operand scores. Every depth includes hidden logic units, so each width setting changes the network.
+
+Select experiments with the direct runner:
 
 ```bash
-python train.py --config configs/oslgn.yaml --data binary_images.npz
-python eval.py --checkpoint results/oslgn/best.pth --data binary_images.npz
+python run_experiments.py --depths 2 4 8 --widths 512 \
+  --initializations local_sigma_2 random --seeds 42 123 456 --download --device cuda
 ```
 
-## Circuit inference
+Use `--data images.npz` for prepared 784-input, 10-class arrays, or cached MNIST under `datasets`. Each profile preserves the 50-epoch Adam schedule and its own result directory under `results/mnist/wiring`; `--epochs` changes the total duration. `python run_experiments.py --dry-run` reads all profiles and displays selected parameter counts without model execution. `utils/experiment_grid.py` defines and validates the grid, while each YAML file is also accepted by `train.py --config`.
+
+## Evaluation and export
+
+```bash
+python eval.py --checkpoint results/mnist/depth4/best.pth --dataset mnist
+python export.py --checkpoint results/mnist/depth4/best.pth --output results/mnist/circuit
+```
+
+Evaluation compares held-out examples with an independent NumPy circuit evaluator. `circuit.json` stores wiring, gates, and the linear head. `equations.txt` names every intermediate node once, keeping the graph compact. Extraction does not need the training dataset.
+
+## Using the exported circuit
 
 ```python
 import json
-from circuit import evaluate_circuit
+from utils.symbolic import evaluate_circuit
 
-with open("results/eval/circuit.json") as handle:
+with open("results/mnist/circuit/circuit.json") as handle:
     circuit = json.load(handle)
 features, logits = evaluate_circuit(circuit, binary_input_array)
 predictions = logits.argmax(axis=-1)
 ```
 
-Boolean equivalence applies exactly to the logic features. The final class decision additionally uses the saved real-valued linear head. The exporter retains that head and does not turn it into a Boolean gate. Inputs to the extracted circuit must already be binary.
-
-## Validation and scope
-
-Tests exhaust all four inputs for all sixteen gates, verify straight-through derivatives and the operand-detachment ablation, and exhaustively compare an extracted multilayer circuit on all sixteen four-bit inputs. The synthetic run checks optimization and serialization. Full MNIST training and manuscript accuracy numbers have not been reproduced here. No trained weights or benchmark scores are bundled.
-
-## Source
-
-*Learning to Wire: End-to-End Operand Selection for Symbolic Logic Networks*, Soon Ho Choi and Soo Yong Kim, supplied manuscript. The core follows Section III and Listings 1–2; MNIST settings follow Section IV-A.
+The Boolean features match the trained network exactly. Class logits apply the exported real-valued head to those features. Circuit inputs contain zeros and ones.

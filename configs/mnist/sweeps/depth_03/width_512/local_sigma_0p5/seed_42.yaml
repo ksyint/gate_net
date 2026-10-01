@@ -1,0 +1,22 @@
+# MNIST wiring study: depth, width, initialization, seed.
+model:
+  input_dim: 784
+  hidden_dim: 512
+  num_classes: 10
+  depth: 3
+  sigma: 0.5
+  local_init: true
+  detach_operands: false
+train:
+  seed: 42
+  epochs: 50
+  batch_size: 64
+  learning_rate: 0.001
+  clip_max_norm: 0
+  num_threads: 1
+  save_dir: results/mnist/wiring/depth_03/width_512/local_sigma_0p5/seed_42
+data:
+  root: datasets
+  threshold: 0.5
+  validation_fraction: 0.1
+  dataset: mnist

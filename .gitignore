@@ -1,8 +1,8 @@
 __pycache__/
 .pytest_cache/
 *.py[cod]
-results/
-datasets/
+/results/
+/datasets/
 *.pth
 *.pt
 .venv/
