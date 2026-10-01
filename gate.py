@@ -5,11 +5,10 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 import json
-import yaml
 from pathlib import Path
 from torch.utils.data import DataLoader
-from networks.logic.circuits.gates import wiring_statistics, OSLGN, evaluate_circuit, symbolic_equations, minimize_features
-from experiments.runtime.wiring import (
+from networks.gates import wiring_statistics, OSLGN, evaluate_circuit, symbolic_equations, minimize_features
+from experiments.wiring import (
     load_dataset,
     experiment_config,
     cuda_device,
@@ -21,6 +20,7 @@ from experiments.runtime.wiring import (
     initialization_name,
     read_profiles,
     load_config,
+    write_config,
     catalog_cli,
 )
 from PIL import Image
@@ -359,7 +359,7 @@ def run_experiments_cli():
 
 
 def run_study_main(args):
-    base = load_config('configs/tasks/mnist_depth4.yaml')
+    base = load_config('configs/mnist_depth4.yaml')
     if args.study == 'depth':
         settings = [(f'depth{depth}', {'depth': depth}) for depth in (2, 4, 8)]
     elif args.study == 'operands':
@@ -384,7 +384,7 @@ def run_study_main(args):
             config['train']['save_dir'] = str(output)
             config['data']['root'] = args.data_root
             path = output / 'config.yaml'
-            path.write_text(yaml.safe_dump(config, sort_keys=False))
+            write_config(path, config)
             report = train_main(
                 argparse.Namespace(
                     config=str(path),
@@ -445,12 +445,12 @@ def main():
         'catalog': catalog_cli,
     }
     extensions = {
-        'circuit': 'networks.logic.circuits.analysis',
-        'verify': 'evaluation.classification.reports.equivalence',
-        'dataset': 'data.preparation.arrays.partitions',
-        'predictions': 'evaluation.classification.reports.predictions',
-        'runs': 'experiments.runtime.runs',
-        'artifacts': 'experiments.runtime.inspection',
+        'circuit': 'networks.analysis',
+        'verify': 'networks.evaluation.equivalence',
+        'dataset': 'data.partitions',
+        'predictions': 'networks.evaluation.predictions',
+        'runs': 'experiments.runs',
+        'artifacts': 'experiments.inspection',
     }
     parser = argparse.ArgumentParser(description='Train, evaluate, and inspect learned Boolean wiring.')
     parser.add_argument('operation', choices=tuple(commands)+tuple(extensions))
