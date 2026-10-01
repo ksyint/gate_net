@@ -74,7 +74,7 @@ python gate.py study --study locality --device cuda
 
 The depth study uses 2/4/8 layers. The operand study compares trainable and detached operand paths at depth 1. The locality study compares Gaussian and random initialization at depth 4 with width 512. Each writes per-run checkpoints and a `summary.json` with measured mean and sample standard deviation over the selected seeds.
 
-The broader 270-profile catalog in `configs/sweeps` groups files by depth and width, with two profiles for each depth beside the depth folders and two more beside its width folders. Filenames record initialization and seed as `<initialization>__seed_<seed>.yaml` or `.py`, prefixed with depth and width when those values are not already in the directory path. It combines depths 2/3/4/5/6/8, widths 128/256/512, Gaussian sigma 0.5/1/2/4 or random initialization, and three seeds. Every axis changes the actual logic model:
+The broader 270-profile catalog in `configs/sweeps` groups files by depth and width, with two profiles for each depth beside the depth folders and two more beside its width folders. Each width keeps its random initialization profiles beside a `gaussian` folder containing the locality settings. Filenames record initialization and seed as `<initialization>__seed_<seed>.yaml` or `.py`, prefixed with depth and width when those values are not already in the directory path. It combines depths 2/3/4/5/6/8, widths 128/256/512, Gaussian sigma 0.5/1/2/4 or random initialization, and three seeds. Every axis changes the actual logic model:
 
 ```bash
 python gate.py sweep --depths 2 4 8 --widths 512 \

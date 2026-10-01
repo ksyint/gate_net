@@ -187,6 +187,8 @@ def write_profiles():
             target = SWEEPS / depth / (width + '__' + filename)
         else:
             target = SWEEPS / depth / width / filename
+            if filename.startswith('local_sigma_'):
+                target = target.parent / 'gaussian' / filename
         destinations[source] = target
     written = []
     for source, config in pending:
